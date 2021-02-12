@@ -23,6 +23,11 @@ app.config.update(dict(
 mail = Mail(app)
 
 
+@app.route('/')
+def index():
+    return jsonify({'msg': 'funcionando'})
+
+
 @app.route('/send_message', methods=['POST'])
 def send_message():
     name = request.json['name']
