@@ -24,33 +24,38 @@ mail = Mail(app)
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
-    name = request.json['name']
-    email = request.json['email']
-    message = request.json['message']
 
-    if len(name) < 5:
-        return jsonify({'msg': 'Escriba su nombre'})
+    name = request.json['name']
+    name = " ".join(name.split())
+
+    email = request.json['email'].strip()
+
+    message = request.json['message']
+    message = " ".join(message.split())
+
+    if len(name) < 8:
+        return jsonify({'value': False, 'msg': 'err_name'})
 
     elif validar_email(email) == False:
-        return jsonify({'msg': 'Correo incorrecto'})
+        return jsonify({'value': False, 'msg': 'err_email'})
     
-    elif len(message) < 8:
-        return jsonify({'msg':'Escriba su mensaje'})
+    elif len(message) < 64 or len(message) > 512:
+        return jsonify({'value': False, 'msg':'err_message'})
 
-    msg = Message('Mensaje desde tu pagina web', 
+    msg = Message('¡MENSAJE DESDE TU PÁGINA WEB!', 
         sender = app.config['MAIL_USERNAME'],
-        recipients = ['freddylo_@hotmail.com']
+        recipients = [os.getenv("RECIPIENT")] #correo destinatario
     )
 
     msg.html = render_template('email.html', data=[name, email, message])
     try:
         mail.send(msg)
     except ConnectionRefusedError:
-        return jsonify({'msg': 'Connection refused error'})
+        return jsonify({'value': False, 'msg': 'Connection refused error'}), 500
     except:
-        return jsonify({'msg': 'Unknown error'})
+        return jsonify({'value': False, 'msg': 'Unknown error'}), 500
 
-    return jsonify({'value': True,'msg': 'sent successfully'})
+    return jsonify({'value': True, 'msg': 'send successfully'}), 200
 
 
 if __name__ == "__main__":
